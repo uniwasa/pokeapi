@@ -31,7 +31,10 @@ DB_VENDOR = connection.vendor
 
 
 MEDIA_DIR = "{prefix}{{file_name}}".format(
-    prefix=os.environ.get("POKEAPI_SPRITES_PREFIX", "/media/sprites/")
+    prefix=os.environ.get(
+        "POKEAPI_SPRITES_PREFIX",
+        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/",
+    )
 )
 IMAGE_DIR = os.getcwd() + "/data/v2/sprites/sprites/"
 RESOURCE_IMAGES = []
@@ -496,9 +499,7 @@ def _build_items():
 
         item_sprites = "items/{0}"
         sprites = {"default": file_path_or_none(item_sprites.format(file_name))}
-        yield ItemSprites(
-            id=int(info[0]), item_id=int(info[0]), sprites=json.dumps(sprites)
-        )
+        yield ItemSprites(id=int(info[0]), item_id=int(info[0]), sprites=sprites)
 
     build_generic((ItemSprites,), "items.csv", csv_record_to_objects)
 
@@ -1898,7 +1899,7 @@ def _build_pokemons():
         yield PokemonSprites(
             id=int(info[0]),
             pokemon=Pokemon.objects.get(pk=int(info[0])),
-            sprites=json.dumps(sprites),
+            sprites=sprites,
         )
 
     build_generic((PokemonSprites,), "pokemon.csv", csv_record_to_objects)
@@ -1912,6 +1913,19 @@ def _build_pokemons():
         )
 
     build_generic((PokemonAbility,), "pokemon_abilities.csv", csv_record_to_objects)
+
+    def csv_record_to_objects(info):
+        yield PokemonAbilityPast(
+            pokemon_id=int(info[0]),
+            generation_id=int(info[1]),
+            ability_id=int(info[2]),
+            is_hidden=bool(int(info[3])),
+            slot=int(info[4]),
+        )
+
+    build_generic(
+        (PokemonAbilityPast,), "pokemon_abilities_past.csv", csv_record_to_objects
+    )
 
     def csv_record_to_objects(info):
         yield PokemonDexNumber(
@@ -2008,7 +2022,7 @@ def _build_pokemons():
             ),
         }
         yield PokemonFormSprites(
-            id=int(info[0]), pokemon_form_id=int(info[0]), sprites=json.dumps(sprites)
+            id=int(info[0]), pokemon_form_id=int(info[0]), sprites=sprites
         )
 
     build_generic((PokemonFormSprites,), "pokemon_forms.csv", csv_record_to_objects)
